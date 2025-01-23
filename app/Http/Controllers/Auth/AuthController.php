@@ -62,7 +62,7 @@ class AuthController extends Controller
     }
     public function profile(Request $request)
     {
-        return $this->successResponse($request, 200);
+        return $this->successResponse($request->user(), 200);
         //ll
     }
     public function logout(Request $request)

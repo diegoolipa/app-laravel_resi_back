@@ -4,8 +4,8 @@ namespace App\Traits;
 
 trait ApiResponser {
 
-    function successResponse($data, $code = 200) {
-        return response()->json(['status'=>'success','data' => $data], $code);
+    function successResponse($data, $code = 200, $message = 'Operación exitosa') {
+        return response()->json(['status'=>'success','message'=>$message ,'data' => $data], $code);
     }
 
     function errorResponse($message, $code = 422) {

@@ -30,6 +30,7 @@ class PersonaController extends Controller
             }
 
             $personas = $query->with([
+                'usuario',
                 'personaNatural:id_persona,nombres_completos',
                 'personaJuridica:id_persona,razon_social',
                 'documentos.tipoDocumento',
@@ -45,97 +46,47 @@ class PersonaController extends Controller
         }
     }
 
-    public function store(PersonaStoreRequest $request)
-    {
 
+    public function guardar(Request $request)
+{
+    try {
         DB::beginTransaction();
-        try {
-            $validated = $request->validated();
 
-            // Crear persona
-            $persona = Persona::create([
-                'tipo_persona' => $validated['tipo_persona'],
-                'id_usuario' => $validated['id_usuario'] ?? null,
-                'usuario_creacion' => auth()->id()
-            ]);
+        $validado = $request->validate([
+            'name' => 'required|string|max:100|min:2',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
 
-            // Persona Natural
-            if ($validated['tipo_persona'] === 'N') {
-                $persona->personaNatural()->create([
-                    'nombres' => $validated['nombres'],
-                    'apellido_paterno' => $validated['apellido_paterno'],
-                    'apellido_materno' => $validated['apellido_materno'] ?? null,
-                    'fecha_nacimiento' => $validated['fecha_nacimiento'] ?? null,
-                    'id_tipo_genero' => $validated['id_tipo_genero'],
-                    'id_tipo_estado_civil' => $validated['id_tipo_estado_civil'],
-                    'usuario_creacion' => auth()->id()
-                ]);
-            }
-            // Persona Jurídica
-            else {
-                $persona->personaJuridica()->create([
-                    'razon_social' => $validated['razon_social'],
-                    'nombre_comercial' => $validated['nombre_comercial'] ?? null,
-                    'sitio_web' => $validated['sitio_web'] ?? null,
-                    'usuario_creacion' => auth()->id()
-                ]);
-            }
+            // Datos de persona
+            'tipo_persona' => 'required|in:N,J', // Natural o Jurídica
+        ]);
 
-            // Documentos
-            if (isset($validated['documentos'])) {
-                foreach ($validated['documentos'] as $documento) {
-                    $persona->documentos()->create([
-                        'id_tipo_documento' => $documento['id_tipo_documento'],
-                        'numero_documento' => $documento['numero_documento'],
-                        'usuario_creacion' => auth()->id()
-                    ]);
-                }
-            }
+        // Crear usuario
+        $usuario = User::create([
+            'name' => $validado['name'],
+            'email' => $validado['email'],
+            'password' => Hash::make($validado['password'])
+        ]);
 
-            // Dirección
-            if (isset($validated['direccion'])) {
-                $persona->direcciones()->create([
-                    ...$validated['direccion'],
-                    'usuario_creacion' => auth()->id()
-                ]);
-            }
+        // Crear persona
+        $persona = Persona::create([
+            'id_usuario' => $usuario->id,
+            'tipo_persona' => $validado['tipo_persona']
+        ]);
 
-            // Celular
-            if (isset($validated['celular'])) {
-                $persona->celulares()->create([
-                    ...$validated['celular'],
-                    'usuario_creacion' => auth()->id()
-                ]);
-            }
+        DB::commit();
 
-            // Correo
-            if (isset($validated['correo'])) {
-                $persona->correos()->create([
-                    ...$validated['correo'],
-                    'usuario_creacion' => auth()->id()
-                ]);
-            }
-
-            DB::commit();
-
-            $persona->load([
-                'personaNatural',
-                'personaJuridica',
-                'documentos.tipoDocumento',
-                'direcciones',
-                'celulares',
-                'correos'
-            ]);
-
-            return $this->successResponse($persona, 201);
-
-        } catch (Exception $e) {
-            DB::rollback();
-            return $this->errorResponse('Error al crear la persona: ' . $e->getMessage(), 400);
-        }
+        return $this->successResponse([
+            'usuario' => $usuario,
+            'persona' => $persona
+        ], 201);
+    } catch (Exception $e) {
+        DB::rollBack();
+        return $this->errorResponse($e->getMessage(), 500);
     }
+}
 
-    public function show($id)
+    public function mostrar($id)
     {
         try {
             $persona = Persona::with([
@@ -143,7 +94,7 @@ class PersonaController extends Controller
                 'personaJuridica',
                 'documentos.tipoDocumento',
                 'direcciones',
-                'celulares',
+                'celulars',
                 'correos'
             ])->findOrFail($id);
 
@@ -154,7 +105,7 @@ class PersonaController extends Controller
         }
     }
 
-    public function update(PersonaStoreRequest $request, $id)
+    public function actualizar(PersonaStoreRequest $request, $id)
     {
         DB::beginTransaction();
         try {
@@ -199,7 +150,7 @@ class PersonaController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function eliminar($id)
     {
         try {
             $persona = Persona::findOrFail($id);

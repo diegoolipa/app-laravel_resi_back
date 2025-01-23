@@ -139,4 +139,26 @@ class TipoDocumentoController extends Controller
             return $this->errorResponse($e->getMessage(), 400);
         }
     }
+
+    public function selector(Request $request)
+    {
+        try {
+            $tipoPersona = $request->input('tipo_persona'); // natural o juridica
+
+            $query = TipoDocumento::activos()->ordenado();
+
+            // Si se especifica el tipo de persona, filtrar
+            if ($tipoPersona === 'natural') {
+                $query->personaNatural();
+            } elseif ($tipoPersona === 'juridica') {
+                $query->personaJuridica();
+            }
+
+            $tiposDocumento = $query->get(['id_tipo_documento', 'nombre', 'sigla']);
+
+            return $this->successResponse($tiposDocumento, 200);
+        } catch (Exception $e) {
+            return $this->errorResponse('Error al obtener los tipos de documento: ' . $e->getMessage(), 500);
+        }
+    }
 }

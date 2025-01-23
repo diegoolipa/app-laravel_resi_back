@@ -2,7 +2,11 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Person\PersonaController;
+use App\Http\Controllers\Person\PersonaJuridicaController;
+use App\Http\Controllers\Person\PersonaNaturalController;
 use App\Http\Controllers\Person\TipoDocumentoController;
+use App\Http\Controllers\Person\TipoEstadoCivilController;
+use App\Http\Controllers\Person\TipoGeneroController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,9 +37,22 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::put("/persona/{id}", [PersonaController::class, 'actualizar']);
         Route::delete("/persona/{id}", [PersonaController::class, 'eliminar']);
 
-        Route::apiResource('/tipo-documentos', TipoDocumentoController::class);
-        Route::get('/tipo-documentos-naturales', [TipoDocumentoController::class, 'naturales']);
-        Route::get('/tipo-documentos-juridicos', [TipoDocumentoController::class, 'juridicos']);
+        Route::apiResource('/tipo-documento', TipoDocumentoController::class);
+        Route::get('/tipo-documento-selector', [TipoDocumentoController::class, 'selector']);
+        Route::get('/tipo-documento-naturales', [TipoDocumentoController::class, 'naturales']);
+        Route::get('/tipo-documento-juridicos', [TipoDocumentoController::class, 'juridicos']);
+
+        Route::apiResource('/tipo-genero', TipoGeneroController::class);
+        Route::get('/tipo-genero-selector', [TipoGeneroController::class, 'selector']);
+
+        Route::apiResource('tipo-estado-civil', TipoEstadoCivilController::class);
+        Route::get('tipo-estado-civil-selector', [TipoEstadoCivilController::class, 'selector']);
+
+        Route::apiResource('/persona-natural', PersonaNaturalController::class);
+        Route::apiResource('/persona-juridica', PersonaJuridicaController::class);
+
+
+
     });
 
     Route::prefix('v1/configuration')->group(function(){
