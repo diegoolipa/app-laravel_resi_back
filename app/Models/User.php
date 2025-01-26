@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Models\Salomon\Persona;
+use App\Models\Salomon\UsuarioDepartamento;
 use App\Models\Sion\UsuarioResidencia;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -56,10 +57,16 @@ class User extends Authenticatable
         return $this->hasOne(Persona::class, 'id_usuario'); // persona.id_usuario -> users.id
     }
 
-    public function residenciaActiva()
+    public function departamentoActual()
     {
-        return $this->hasOne(UsuarioResidencia::class, 'id_usuario')
-            ->where('es_actual', true)
-            ->where('estado', 1);
+       return $this->hasOne(UsuarioDepartamento::class, 'id_usuario')
+           ->where('es_activo', true)
+           ->where('estado', 1);
+    }
+
+    public function departamentos()
+    {
+       return $this->hasMany(UsuarioDepartamento::class, 'id_usuario')
+           ->where('estado', 1);
     }
 }

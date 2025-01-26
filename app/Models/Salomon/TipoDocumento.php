@@ -2,7 +2,7 @@
 
 namespace App\Models\Salomon;
 
-use App\Models\TablaBase;
+use App\Models\Gedeon\TablaBase;
 use Illuminate\Support\Facades\DB;
 
 class TipoDocumento extends TablaBase

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Gedeon;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,4 +39,16 @@ class TablaBase extends Model
         'usuario_creacion',
         'usuario_actualizacion'
     ];
+
+    // Scope para registros activos
+    public function scopeActivos($query)
+    {
+        return $query->where('estado', 1);
+    }
+
+    // Scope para ordenar por defecto
+    public function scopeOrdenado($query)
+    {
+        return $query->orderBy('fecha_creacion', 'desc');
+    }
 }

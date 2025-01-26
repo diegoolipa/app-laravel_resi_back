@@ -42,6 +42,7 @@ class TipoGeneroController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request);
         try {
             $validado = $request->validate([
                 'nombre' => 'required|string|max:255',

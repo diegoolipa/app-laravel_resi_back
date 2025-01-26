@@ -94,7 +94,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'sslmode' => 'prefer',
-            'search_path' => 'salomon,sion,public',  // Define los tres esquemas en orden de búsqueda
+            'search_path' => 'salomon,sion,gedeon,public',  // Define los tres esquemas en orden de búsqueda
         ],
 
         'sqlsrv' => [
