@@ -79,7 +79,7 @@ class PersonaController extends Controller
         return $this->successResponse([
             'usuario' => $usuario,
             'persona' => $persona
-        ], 201);
+        ], 201, 'Persona creada con éxito');
     } catch (Exception $e) {
         DB::rollBack();
         return $this->errorResponse($e->getMessage(), 500);

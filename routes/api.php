@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Controllers\AccessManagement\AccionController;
+use App\Http\Controllers\AccessManagement\MenuController;
+use App\Http\Controllers\AccessManagement\ModuloController;
+use App\Http\Controllers\AccessManagement\RoleController;
+use App\Http\Controllers\AccessManagement\RolMenuAccionController;
+use App\Http\Controllers\AccessManagement\RolMenuController;
+use App\Http\Controllers\AccessManagement\UsuarioRolController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Person\PersonaController;
 use App\Http\Controllers\Person\PersonaJuridicaController;
@@ -52,9 +59,31 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::apiResource('/persona-juridica', PersonaJuridicaController::class);
 
 
-
     });
+    Route::prefix('v1/setup')->group(function(){
+        // Roles
+        Route::apiResource('roles', RoleController::class);
+        Route::post('roles/{id}/menus', [RoleController::class, 'asignarMenus']);
+        Route::post('roles/{id}/acciones', [RoleController::class, 'asignarAcciones']);
 
+        // Módulos
+        Route::apiResource('modulos', ModuloController::class);
+
+        // Menús
+        Route::apiResource('menus', MenuController::class);
+
+        // Acciones
+        Route::apiResource('acciones', AccionController::class);
+
+        // Rol-Menú
+        Route::apiResource('rol-menus', RolMenuController::class);
+
+        // Rol-Menú-Acciones
+        Route::apiResource('rol-menu-acciones', RolMenuAccionController::class);
+
+        // Usuario-Roles
+        Route::apiResource('usuario-roles', UsuarioRolController::class);
+    });
     Route::prefix('v1/configuration')->group(function(){
     });
 });
