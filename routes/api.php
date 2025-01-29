@@ -7,6 +7,7 @@ use App\Http\Controllers\AccessManagement\RoleController;
 use App\Http\Controllers\AccessManagement\RolMenuAccionController;
 use App\Http\Controllers\AccessManagement\RolMenuController;
 use App\Http\Controllers\AccessManagement\UsuarioRolController;
+use App\Http\Controllers\Administration\EntidadController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Person\PersonaController;
 use App\Http\Controllers\Person\PersonaJuridicaController;
@@ -43,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get("/persona/{id}", [PersonaController::class, 'mostrar']);
         Route::put("/persona/{id}", [PersonaController::class, 'actualizar']);
         Route::delete("/persona/{id}", [PersonaController::class, 'eliminar']);
+        Route::get('/persona-buscar', [PersonaController::class, 'buscar']);
 
         Route::apiResource('/tipo-documento', TipoDocumentoController::class);
         Route::get('/tipo-documento-selector', [TipoDocumentoController::class, 'selector']);
@@ -83,6 +85,12 @@ Route::middleware('auth:sanctum')->group(function(){
 
         // Usuario-Roles
         Route::apiResource('usuario-roles', UsuarioRolController::class);
+    });
+
+    Route::prefix('v1/administration')->group(function(){
+        Route::apiResource('entidades', EntidadController::class);
+        Route::get('entidades-departamentos/{id}', [EntidadController::class, 'listarEntidadDepartamentos']);
+
     });
     Route::prefix('v1/configuration')->group(function(){
     });

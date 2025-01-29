@@ -16,34 +16,46 @@ class PersonaController extends Controller
 {
     public function listar(Request $request)
     {
-        try {
-            $query = Persona::query();
+       try {
+           $query = Persona::query();
 
-            if ($request->has('tipo_persona')) {
-                $query->where('tipo_persona', $request->tipo_persona);
-            }
+           // Búsqueda por tipo de persona
+           if ($request->filled('tipo_persona')) {
+               $query->where('tipo_persona', $request->tipo_persona);
+           }
 
-            if ($request->has('numero_documento')) {
-                $query->whereHas('documentos', function ($q) use ($request) {
-                    $q->where('numero_documento', $request->numero_documento);
-                });
-            }
+           // Búsqueda general (correo, usuario o documento)
+           if ($request->filled('search')) {
+               $search = $request->search;
+               $query->where(function($q) use ($search) {
+                   $q->whereHas('documentos', function($q) use ($search) {
+                       $q->where('numero_documento', 'ilike', "%{$search}%");
+                   })
+                   ->orWhereHas('correos', function($q) use ($search) {
+                       $q->where('correo', 'ilike', "%{$search}%");
+                   })
+                   ->orWhereHas('usuario', function($q) use ($search) {
+                       $q->where('name', 'ilike', "%{$search}%")
+                         ->orWhere('email', 'ilike', "%{$search}%");
+                   });
+               });
+           }
 
-            $personas = $query->with([
-                'usuario',
-                'personaNatural:id_persona,nombres_completos',
-                'personaJuridica:id_persona,razon_social',
-                'documentos.tipoDocumento',
-                'direcciones' => fn($q) => $q->where('es_principal', true),
-                'celulars' => fn($q) => $q->where('es_principal', true),
-                'correos' => fn($q) => $q->where('es_principal', true)
-            ])->paginate(10);
+           $personas = $query->with([
+               'usuario',
+               'personaNatural:id_persona,nombres_completos',
+               'personaJuridica:id_persona,razon_social',
+               'documentos.tipoDocumento',
+               'direcciones' => fn($q) => $q->where('es_principal', true),
+               'celulars' => fn($q) => $q->where('es_principal', true),
+               'correos' => fn($q) => $q->where('es_principal', true)
+           ])->paginate(10);
 
-            return $this->successResponse($personas,200);
+           return $this->successResponse($personas, 200);
 
-        } catch (Exception $e) {
-            return $this->errorResponse('Error al obtener las personas: ' . $e->getMessage(), 500);
-        }
+       } catch (Exception $e) {
+           return $this->errorResponse('Error al obtener las personas: ' . $e->getMessage(), 500);
+       }
     }
 
 
@@ -164,6 +176,51 @@ class PersonaController extends Controller
 
         } catch (\Exception $e) {
             return $this->errorResponse('Error al eliminar la persona: ' . $e->getMessage(), 400);
+        }
+    }
+
+    public function buscar(Request $request)
+    {
+        try {
+            $query = Persona::query()->where('estado', 1);
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    // Búsqueda en persona natural
+                    $q->whereHas('personaNatural', function($q) use ($search) {
+                        $q->where(function($q) use ($search) {
+                            $q->where('nombres', 'ilike', "%{$search}%")
+                              ->orWhere('apellido_paterno', 'ilike', "%{$search}%")
+                              ->orWhere('apellido_materno', 'ilike', "%{$search}%");
+                        });
+                    })
+                    // Búsqueda en persona jurídica
+                    ->orWhereHas('personaJuridica', function($q) use ($search) {
+                        $q->where('razon_social', 'ilike', "%{$search}%")
+                          ->orWhere('nombre_comercial', 'ilike', "%{$search}%");
+                    })
+                    // Búsqueda por documento
+                    ->orWhereHas('documentos', function($q) use ($search) {
+                        $q->where('numero_documento', 'ilike', "%{$search}%");
+                    })
+                    ->orWhereHas('usuario', function($q) use ($search) {
+                        $q->where('email', 'ilike', "%{$search}%");
+                    });
+                });
+            }
+
+            $personas = $query->with([
+                'personaNatural:id_persona,nombres,apellido_paterno,apellido_materno',
+                'personaJuridica:id_persona,razon_social,nombre_comercial',
+                'documentos.tipoDocumento'
+            ])
+            ->limit(10)
+            ->get();
+
+            return $this->successResponse($personas);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage());
         }
     }
 }
